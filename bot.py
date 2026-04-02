@@ -230,11 +230,17 @@ def register_bot_handlers() -> None:
 
 
 def set_webhook_if_needed(webhook_url: str) -> None:
-    """Устанавливает Telegram webhook, если задан WEBHOOK_URL."""
+    """Устанавливает Telegram webhook в фоновом потоке, чтобы не блокировать gunicorn."""
     if not webhook_url or application is None:
         return
     url = webhook_url.rstrip("/") + "/telegram-webhook"
-    try:
-        run_async(application.bot.set_webhook(url=url))
-    except Exception as e:
-        print(f"[WARN] Не удалось установить Telegram webhook: {e}")
+
+    def _set():
+        try:
+            asyncio.run(application.bot.set_webhook(url=url))
+            print(f"[INFO] Telegram webhook установлен: {url}")
+        except Exception as e:
+            print(f"[WARN] Не удалось установить Telegram webhook: {e}")
+
+    import threading
+    threading.Thread(target=_set, daemon=True).start()
