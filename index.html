@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>iBig | Мини Апп</title>
+    <style>
+      :root {
+        --bg: #0b0f14;
+        --panel: #121a24;
+        --panel2: #0f1620;
+        --text: #e7eef7;
+        --muted: rgba(231, 238, 247, 0.7);
+        --border: rgba(231, 238, 247, 0.12);
+        --primary: #5aa7ff;
+        --danger: #ff5a6e;
+        --success: #41d97b;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+
+      /* Подхватываем тему от Telegram, если есть */
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        background: var(--tg-theme-bg-color, var(--bg));
+        color: var(--tg-theme-text-color, var(--text));
+      }
+
+      .wrap {
+        padding: 14px;
+        max-width: 520px;
+        margin: 0 auto;
+      }
+
+      .topbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+
+      .brand {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .brand .name {
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        font-size: 16px;
+      }
+
+      .brand .sub {
+        font-size: 12px;
+        color: var(--tg-theme-hint-color, var(--muted));
+      }
+
+      .nav {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+        margin: 0 -14px;
+        padding-left: 14px;
+      }
+
+      .nav button {
+        background: var(--panel2);
+        color: var(--tg-theme-text-color, var(--text));
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        padding: 10px 12px;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .nav button.active {
+        border-color: rgba(90, 167, 255, 0.7);
+        box-shadow: 0 0 0 3px rgba(90, 167, 255, 0.15);
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow: var(--shadow);
+        padding: 14px;
+        margin-top: 12px;
+      }
+
+      .card h2 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+      }
+
+      .muted {
+        color: var(--tg-theme-hint-color, var(--muted));
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--tg-theme-hint-color, var(--muted));
+      }
+
+      input, select, textarea {
+        background: rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 12px;
+        color: var(--tg-theme-text-color, var(--text));
+        outline: none;
+        font-size: 14px;
+      }
+
+      textarea {
+        min-height: 92px;
+        resize: vertical;
+      }
+
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      @media (max-width: 420px) {
+        .row2 { grid-template-columns: 1fr; }
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 2px;
+      }
+
+      .btn {
+        width: 100%;
+        background: var(--primary);
+        border: 0;
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: #06111f;
+        font-weight: 800;
+        cursor: pointer;
+        font-size: 14px;
+      }
+
+      .btn.secondary {
+        background: transparent;
+        color: var(--tg-theme-text-color, var(--text));
+        border: 1px solid var(--border);
+        font-weight: 700;
+      }
+
+      .status {
+        margin-top: 10px;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(0,0,0,0.08);
+      }
+
+      .status.ok {
+        border-color: rgba(65, 217, 123, 0.5);
+      }
+
+      .status.err {
+        border-color: rgba(255, 90, 110, 0.6);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 12px;
+      }
+
+      th, td {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+
+      th {
+        text-align: left;
+        color: var(--tg-theme-hint-color, var(--muted));
+        font-weight: 800;
+        font-size: 12px;
+      }
+
+      tr.category td {
+        background: rgba(90, 167, 255, 0.08);
+        color: var(--tg-theme-text-color, var(--text));
+        font-weight: 900;
+        border-bottom: 1px solid rgba(90, 167, 255, 0.25);
+      }
+
+      .footer {
+        margin-top: 16px;
+        padding: 8px 0 18px 0;
+        color: var(--tg-theme-hint-color, var(--muted));
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .mapbox {
+        border-radius: 14px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+
+      .mapbox iframe {
+        width: 100%;
+        height: 180px;
+        border: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="name">iBig</div>
+          <div class="sub">Сервисный центр • мини-апп</div>
+        </div>
+        <div class="muted" id="tgUserLine"></div>
+      </div>
+
+      <div class="nav">
+        <button class="active" data-tab="repair">Запись</button>
+        <button data-tab="prices">Прайс</button>
+        <button data-tab="question">Вопрос</button>
+        <button data-tab="status">Статус</button>
+        <button data-tab="contacts">Контакты</button>
+      </div>
+
+      <!-- Запись на ремонт -->
+      <section class="tab" id="tab-repair">
+        <div class="card">
+          <h2>Запись на ремонт</h2>
+          <div class="muted">Оставьте заявку — администратор получит уведомление в Telegram.</div>
+
+          <form id="repairForm">
+            <div class="row2">
+              <label>
+                Имя
+                <input name="name" type="text" placeholder="Например: Анна" required maxlength="200" />
+              </label>
+              <label>
+                Телефон
+                <input name="phone" type="tel" placeholder="+7 9хх ххх-хх-хх" required maxlength="50" />
+              </label>
+            </div>
+
+            <label>
+              Тип устройства
+              <select name="deviceType" required>
+                <option value="" selected disabled>Выберите устройство</option>
+                <option>Смартфон</option>
+                <option>Планшет</option>
+                <option>Ноутбук</option>
+                <option>ПК</option>
+                <option>Другая техника</option>
+              </select>
+            </label>
+
+            <label>
+              Описание проблемы
+              <textarea name="description" placeholder="Что именно случилось? (например: не включается, трещина, не заряжается)" required maxlength="2000"></textarea>
+            </label>
+
+            <label>
+              Удобное время
+              <input name="preferredTime" type="datetime-local" required />
+            </label>
+
+            <div class="actions">
+              <button class="btn" type="submit">Отправить заявку</button>
+            </div>
+
+            <div class="status" id="repairStatusBox" style="display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Прайс-лист -->
+      <section class="tab" id="tab-prices" style="display:none;">
+        <div class="card">
+          <h2>Прайс-лист</h2>
+          <div class="muted">Цены ориентировочные. Точную стоимость скажет администратор после диагностики.</div>
+
+          <div style="margin-top:12px; overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:70%;">Услуга</th>
+                  <th>Цена</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="category"><td colspan="2">Смартфоны</td></tr>
+                <tr><td>Замена дисплея</td><td>от 6 900 ₽</td></tr>
+                <tr><td>Замена аккумулятора</td><td>от 2 900 ₽</td></tr>
+                <tr><td>Ремонт разъёма зарядки</td><td>от 2 500 ₽</td></tr>
+                <tr><td>Неисправность “не включается”</td><td>от 2 300 ₽</td></tr>
+
+                <tr class="category"><td colspan="2">Ноутбуки</td></tr>
+                <tr><td>Замена SSD / установка</td><td>от 1 900 ₽</td></tr>
+                <tr><td>Чистка от пыли и термопаста</td><td>от 2 500 ₽</td></tr>
+                <tr><td>Ремонт питания / разъёма</td><td>от 2 900 ₽</td></tr>
+                <tr><td>Замена клавиатуры</td><td>от 4 900 ₽</td></tr>
+
+                <tr class="category"><td colspan="2">Планшеты</td></tr>
+                <tr><td>Замена дисплея</td><td>от 5 500 ₽</td></tr>
+                <tr><td>Замена аккумулятора</td><td>от 2 700 ₽</td></tr>
+                <tr><td>Ремонт кнопок / шлейфов</td><td>от 2 400 ₽</td></tr>
+
+                <tr class="category"><td colspan="2">Прочее</td></tr>
+                <tr><td>Диагностика (если ремонт не выполняется)</td><td>1 000 ₽</td></tr>
+                <tr><td>Срочная диагностика</td><td>1 800 ₽</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Задать вопрос -->
+      <section class="tab" id="tab-question" style="display:none;">
+        <div class="card">
+          <h2>Задать вопрос</h2>
+          <div class="muted">Напишите вопрос — администратор ответит вам в Telegram.</div>
+
+          <form id="questionForm">
+            <label>
+              Ваш вопрос
+              <textarea name="questionText" placeholder="Например: Сколько будет стоить замена аккумулятора? Есть ли гарантия?" required maxlength="2000"></textarea>
+            </label>
+            <div class="actions">
+              <button class="btn" type="submit">Отправить</button>
+            </div>
+            <div class="status" id="questionStatusBox" style="display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Статус ремонта -->
+      <section class="tab" id="tab-status" style="display:none;">
+        <div class="card">
+          <h2>Статус ремонта</h2>
+          <div class="muted">Введите номер заявки, полученный после записи.</div>
+
+          <form id="statusForm">
+            <label>
+              Номер заявки
+              <input name="orderNumber" type="text" placeholder="Например: iBig-20260323-A1B2C3" required maxlength="100" />
+            </label>
+            <div class="actions">
+              <button class="btn" type="submit">Проверить</button>
+            </div>
+            <div class="status" id="statusBox" style="display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Контакты -->
+      <section class="tab" id="tab-contacts" style="display:none;">
+        <div class="card">
+          <h2>Контакты</h2>
+          <div class="muted" style="margin-bottom:10px;">
+            Обновите данные (адрес/телефон/график) под ваш сервисный центр.
+          </div>
+
+          <div class="row2">
+            <div>
+              <div class="muted" style="margin-bottom:6px;">Адрес</div>
+              <div style="font-weight:800;">ул. Примерная, 1</div>
+              <div class="muted" style="margin-top:8px;">Телефон</div>
+              <div style="font-weight:800;">+7 (999) 123-45-67</div>
+              <div class="muted" style="margin-top:8px;">Режим работы</div>
+              <div style="font-weight:800;">Ежедневно 10:00–19:00</div>
+            </div>
+            <div>
+              <div class="muted" style="margin-bottom:6px;">Карта</div>
+              <div class="mapbox">
+                <!-- Заглушка: вставьте вашу локацию/координаты -->
+                <iframe
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=37.6173%2C55.7558%2C37.6507%2C55.7700&layer=mapnik&marker=55.7630%2C37.6340"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            iBig • Мини Апп • Telegram Web App
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      const tg = window.Telegram ? window.Telegram.WebApp : null;
+
+      // Telegram обычно вызывает init сразу.
+      if (tg) {
+        tg.ready();
+        tg.expand();
+      }
+
+      function showStatus(el, kind, text) {
+        el.style.display = "block";
+        el.classList.remove("ok", "err");
+        if (kind === "ok") el.classList.add("ok");
+        if (kind === "err") el.classList.add("err");
+        el.textContent = text;
+      }
+
+      const initData = tg && tg.initData ? tg.initData : "";
+
+      // Подключаем тему Telegram (если доступно)
+      try {
+        if (tg && tg.themeParams) {
+          const theme = tg.themeParams;
+          const root = document.documentElement;
+          if (theme.bg_color) root.style.setProperty("--tg-theme-bg-color", theme.bg_color);
+          if (theme.text_color) root.style.setProperty("--tg-theme-text-color", theme.text_color);
+          if (theme.hint_color) root.style.setProperty("--tg-theme-hint-color", theme.hint_color);
+        }
+      } catch (_) {}
+
+      const tabs = document.querySelectorAll(".nav button");
+      const tabSections = document.querySelectorAll(".tab");
+
+      function setTab(tabName) {
+        tabs.forEach(b => b.classList.toggle("active", b.dataset.tab === tabName));
+        tabSections.forEach(s => {
+          const id = s.id.replace("tab-", "");
+          s.style.display = id === tabName ? "" : "none";
+        });
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener("click", () => setTab(btn.dataset.tab));
+      });
+
+      // Инфо о пользователе (только для удобства)
+      try {
+        if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+          const u = tg.initDataUnsafe.user;
+          const line = u.username ? "@" + u.username : "Пользователь";
+          document.getElementById("tgUserLine").textContent = line;
+        }
+      } catch (_) {}
+
+      async function apiPost(url, body) {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || data.ok === false) {
+          const err = data.error || "Ошибка запроса";
+          throw new Error(err);
+        }
+        return data;
+      }
+
+      // Repair
+      const repairForm = document.getElementById("repairForm");
+      const repairStatusBox = document.getElementById("repairStatusBox");
+      repairForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          repairStatusBox.textContent = "";
+          const fd = new FormData(repairForm);
+          const payload = {
+            initData,
+            name: fd.get("name"),
+            phone: fd.get("phone"),
+            deviceType: fd.get("deviceType"),
+            description: fd.get("description"),
+            preferredTime: fd.get("preferredTime"),
+          };
+          const data = await apiPost("/api/repair/register", payload);
+          showStatus(repairStatusBox, "ok", `Заявка отправлена! Номер: ${data.order_number}`);
+        } catch (err) {
+          showStatus(repairStatusBox, "err", err.message || "Ошибка");
+        }
+      });
+
+      // Question
+      const questionForm = document.getElementById("questionForm");
+      const questionStatusBox = document.getElementById("questionStatusBox");
+      questionForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          questionStatusBox.textContent = "";
+          const fd = new FormData(questionForm);
+          const payload = {
+            initData,
+            questionText: fd.get("questionText"),
+          };
+          const data = await apiPost("/api/question/ask", payload);
+          showStatus(questionStatusBox, "ok", `Вопрос отправлен! №: ${data.question_id}. Администратор ответит вам в Telegram.`);
+        } catch (err) {
+          showStatus(questionStatusBox, "err", err.message || "Ошибка");
+        }
+      });
+
+      // Status
+      const statusForm = document.getElementById("statusForm");
+      const statusBox = document.getElementById("statusBox");
+      statusForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          statusBox.textContent = "";
+          const fd = new FormData(statusForm);
+          const payload = { orderNumber: fd.get("orderNumber") };
+          const data = await apiPost("/api/repair/status", payload);
+          showStatus(statusBox, "ok", `Заявка ${data.order_number}: ${data.status}`);
+        } catch (err) {
+          showStatus(statusBox, "err", err.message || "Ошибка");
+        }
+      });
+    </script>
+  </body>
+</html>
+

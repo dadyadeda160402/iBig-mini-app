@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>iBig | Мини Апп</title>
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="name">iBig</div>
+          <div class="sub">Сервисный центр • мини-апп</div>
+        </div>
+        <div class="muted" id="tgUserLine"></div>
+      </div>
+
+      <div class="nav">
+        <button class="active" data-tab="repair">Запись</button>
+        <button data-tab="prices">Прайс</button>
+        <button data-tab="question">Вопрос</button>
+        <button data-tab="status">Статус</button>
+        <button data-tab="contacts">Контакты</button>
+      </div>
+
+      <!-- Запись на ремонт -->
+      <section class="tab" id="tab-repair">
+        <div class="card">
+          <h2>Запись на ремонт</h2>
+          <div class="muted">Оставьте заявку — администратор получит уведомление в Telegram.</div>
+
+          <form id="repairForm">
+            <div class="row2">
+              <label>
+                Имя
+                <input name="name" type="text" placeholder="Например: Анна" required maxlength="200" />
+              </label>
+              <label>
+                Телефон
+                <input name="phone" type="tel" placeholder="+7 9хх ххх-хх-хх" required maxlength="50" />
+              </label>
+            </div>
+
+            <label>
+              Тип устройства
+              <select name="deviceType" required>
+                <option value="" selected disabled>Выберите устройство</option>
+                <option>Смартфон</option>
+                <option>Планшет</option>
+                <option>Ноутбук</option>
+                <option>ПК</option>
+                <option>Другая техника</option>
+              </select>
+            </label>
+
+            <label>
+              Описание проблемы
+              <textarea name="description" placeholder="Что именно случилось? (например: не включается, трещина, не заряжается)" required maxlength="2000"></textarea>
+            </label>
+
+            <label>
+              Удобное время
+              <input name="preferredTime" type="datetime-local" required />
+            </label>
+
+            <div class="actions">
+              <button class="btn" type="submit">Отправить заявку</button>
+            </div>
+
+            <div class="status" id="repairStatusBox" style="display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Прайс-лист -->
+      <section class="tab" id="tab-prices" style="display:none;">
+        <div class="card">
+          <h2>Прайс-лист</h2>
+          <div class="muted">Цены ориентировочные. Точную стоимость скажет администратор после диагностики.</div>
+
+          <div style="margin-top:12px; overflow:auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:70%;">Услуга</th>
+                  <th>Цена</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="category"><td colspan="2">Смартфоны</td></tr>
+                <tr><td>Замена дисплея</td><td>от 6 900 ₽</td></tr>
+                <tr><td>Замена аккумулятора</td><td>от 2 900 ₽</td></tr>
+                <tr><td>Ремонт разъёма зарядки</td><td>от 2 500 ₽</td></tr>
+                <tr><td>Неисправность "не включается"</td><td>от 2 300 ₽</td></tr>
+
+                <tr class="category"><td colspan="2">Ноутбуки</td></tr>
+                <tr><td>Замена SSD / установка</td><td>от 1 900 ₽</td></tr>
+                <tr><td>Чистка от пыли и термопаста</td><td>от 2 500 ₽</td></tr>
+                <tr><td>Ремонт питания / разъёма</td><td>от 2 900 ₽</td></tr>
+                <tr><td>Замена клавиатуры</td><td>от 4 900 ₽</td></tr>
+
+                <tr class="category"><td colspan="2">Планшеты</td></tr>
+                <tr><td>Замена дисплея</td><td>от 5 500 ₽</td></tr>
+                <tr><td>Замена аккумулятора</td><td>от 2 700 ₽</td></tr>
+                <tr><td>Ремонт кнопок / шлейфов</td><td>от 2 400 ₽</td></tr>
+
+                <tr class="category"><td colspan="2">Прочее</td></tr>
+                <tr><td>Диагностика (если ремонт не выполняется)</td><td>1 000 ₽</td></tr>
+                <tr><td>Срочная диагностика</td><td>1 800 ₽</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Задать вопрос -->
+      <section class="tab" id="tab-question" style="display:none;">
+        <div class="card">
+          <h2>Задать вопрос</h2>
+          <div class="muted">Напишите вопрос — администратор ответит вам в Telegram.</div>
+
+          <form id="questionForm">
+            <label>
+              Ваш вопрос
+              <textarea name="questionText" placeholder="Например: Сколько будет стоить замена аккумулятора? Есть ли гарантия?" required maxlength="2000"></textarea>
+            </label>
+            <div class="actions">
+              <button class="btn" type="submit">Отправить</button>
+            </div>
+            <div class="status" id="questionStatusBox" style="display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Статус ремонта -->
+      <section class="tab" id="tab-status" style="display:none;">
+        <div class="card">
+          <h2>Статус ремонта</h2>
+          <div class="muted">Введите номер заявки, полученный после записи.</div>
+
+          <form id="statusForm">
+            <label>
+              Номер заявки
+              <input name="orderNumber" type="text" placeholder="Например: iBig-20260323-A1B2C3" required maxlength="100" />
+            </label>
+            <div class="actions">
+              <button class="btn" type="submit">Проверить</button>
+            </div>
+            <div class="status" id="statusBox" style="display:none;"></div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Контакты -->
+      <section class="tab" id="tab-contacts" style="display:none;">
+        <div class="card">
+          <h2>Контакты</h2>
+          <div class="muted" style="margin-bottom:10px;">
+            Обновите данные (адрес/телефон/график) под ваш сервисный центр.
+          </div>
+
+          <div class="row2">
+            <div>
+              <div class="muted" style="margin-bottom:6px;">Адрес</div>
+              <div style="font-weight:800;">ул. Примерная, 1</div>
+              <div class="muted" style="margin-top:8px;">Телефон</div>
+              <div style="font-weight:800;">+7 (999) 123-45-67</div>
+              <div class="muted" style="margin-top:8px;">Режим работы</div>
+              <div style="font-weight:800;">Ежедневно 10:00–19:00</div>
+            </div>
+            <div>
+              <div class="muted" style="margin-bottom:6px;">Карта</div>
+              <div class="mapbox">
+                <!-- Заглушка: вставьте вашу локацию/координаты -->
+                <iframe
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=37.6173%2C55.7558%2C37.6507%2C55.7700&layer=mapnik&marker=55.7630%2C37.6340"
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            iBig • Мини Апп • Telegram Web App
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>
