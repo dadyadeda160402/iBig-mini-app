@@ -34,6 +34,9 @@ def startup() -> None:
     if _startup_done:
         return
     init_db()
+    from database.models import seed_prices_if_empty, seed_slots_if_empty
+    seed_prices_if_empty()
+    seed_slots_if_empty()
     if not CONFIG_OK:
         print(f"[WARN] Конфигурация бота неполная: {CONFIG_ERROR} Страница / откроется, но API и уведомления не работают.")
     register_bot_handlers()

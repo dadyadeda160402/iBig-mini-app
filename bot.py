@@ -19,7 +19,7 @@ from telegram.ext import (
 )
 
 from config import ADMIN_CHAT_ID_INT, BOT_TOKEN, CONFIG_OK
-from database.models import answer_question, sanitize_text, update_repair_status
+from database.models import answer_question, sanitize_text, update_repair_status_by_order as update_repair_status
 
 # Для ответа администратора на вопросы в Telegram:
 # admin_chat_id -> question_id
@@ -86,13 +86,16 @@ def extract_user_from_init_data(init_params: Dict[str, str]) -> Tuple[Optional[i
 
 async def notify_admin_new_repair(row) -> None:
     """Отправляет администратору уведомление о новой заявке на ремонт."""
+    device_info = row["device_type"]
+    if row["device_model"]:
+        device_info += f" {row['device_model']}"
     text = (
         "📋 Новая запись на ремонт\n"
         f"Номер заявки: {row['order_number']}\n"
         f"Клиент: {row['name']} ({row['phone']})\n"
-        f"Устройство: {row['device_type']}\n"
+        f"Устройство: {device_info}\n"
         f"Проблема: {row['description']}\n"
-        f"Удобное время: {row['preferred_time']}\n"
+        f"Время: {row['preferred_time']}\n"
     )
     await application.bot.send_message(chat_id=ADMIN_CHAT_ID_INT, text=text)
 

@@ -8,6 +8,8 @@ BOT_TOKEN: str = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_CHAT_ID: str = os.getenv("ADMIN_CHAT_ID", "").strip()
 WEBHOOK_URL: str = os.getenv("WEBHOOK_URL", "").strip()
 
+ADMIN_TOKEN: str = os.getenv("ADMIN_TOKEN", "").strip()
+
 BASE_DIR: str = os.path.dirname(os.path.abspath(__file__))
 DATABASE_PATH: str = os.path.join(BASE_DIR, "database.db")
 

@@ -3,15 +3,41 @@
   --panel: #121a24;
   --panel2: #0f1620;
   --text: #e7eef7;
-  --muted: rgba(231, 238, 247, 0.7);
+  --muted: rgba(231, 238, 247, 0.65);
   --border: rgba(231, 238, 247, 0.12);
   --primary: #5aa7ff;
   --danger: #ff5a6e;
   --success: #41d97b;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --input-bg: rgba(255, 255, 255, 0.06);
 }
 
-/* Подхватываем тему от Telegram, если есть */
+/* Светлая тема через media query */
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f0f4f9;
+    --panel: #ffffff;
+    --panel2: #e4eaf2;
+    --text: #0d1117;
+    --muted: rgba(13, 17, 23, 0.55);
+    --border: rgba(13, 17, 23, 0.12);
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --input-bg: rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Светлая тема через JS (Telegram colorScheme) */
+[data-theme="light"] {
+  --bg: #f0f4f9;
+  --panel: #ffffff;
+  --panel2: #e4eaf2;
+  --text: #0d1117;
+  --muted: rgba(13, 17, 23, 0.55);
+  --border: rgba(13, 17, 23, 0.12);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  --input-bg: rgba(0, 0, 0, 0.04);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -33,22 +59,9 @@ body {
   margin-bottom: 12px;
 }
 
-.brand {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.brand .name {
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  font-size: 16px;
-}
-
-.brand .sub {
-  font-size: 12px;
-  color: var(--tg-theme-hint-color, var(--muted));
-}
+.brand { display: flex; flex-direction: column; gap: 3px; }
+.brand .name { font-weight: 800; letter-spacing: 0.2px; font-size: 16px; }
+.brand .sub { font-size: 12px; color: var(--tg-theme-hint-color, var(--muted)); }
 
 .nav {
   display: flex;
@@ -60,7 +73,7 @@ body {
 }
 
 .nav button {
-  background: var(--panel2);
+  background: var(--tg-theme-secondary-bg-color, var(--panel2));
   color: var(--tg-theme-text-color, var(--text));
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -68,15 +81,17 @@ body {
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
+  font-weight: 600;
 }
 
 .nav button.active {
   border-color: rgba(90, 167, 255, 0.7);
   box-shadow: 0 0 0 3px rgba(90, 167, 255, 0.15);
+  color: var(--primary);
 }
 
 .card {
-  background: var(--panel);
+  background: var(--tg-theme-secondary-bg-color, var(--panel));
   border: 1px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
@@ -84,10 +99,7 @@ body {
   margin-top: 12px;
 }
 
-.card h2 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-}
+.card h2 { margin: 0 0 10px 0; font-size: 16px; }
 
 .muted {
   color: var(--tg-theme-hint-color, var(--muted));
@@ -95,11 +107,7 @@ body {
   line-height: 1.35;
 }
 
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+form { display: flex; flex-direction: column; gap: 10px; }
 
 label {
   display: flex;
@@ -110,46 +118,43 @@ label {
 }
 
 input, select, textarea {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--input-bg);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 12px 12px;
+  padding: 12px;
   color: var(--tg-theme-text-color, var(--text));
   outline: none;
   font-size: 14px;
+  font-family: inherit;
 }
 
-textarea {
-  min-height: 92px;
-  resize: vertical;
+input::placeholder, textarea::placeholder {
+  color: var(--tg-theme-hint-color, var(--muted));
 }
 
-.row2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+select option {
+  background: var(--panel);
+  color: var(--text);
 }
 
-@media (max-width: 420px) {
-  .row2 { grid-template-columns: 1fr; }
-}
+textarea { min-height: 92px; resize: vertical; }
 
-.actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 2px;
-}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 420px) { .row2 { grid-template-columns: 1fr; } }
+
+.actions { display: flex; gap: 10px; margin-top: 2px; }
 
 .btn {
   width: 100%;
-  background: var(--primary);
+  background: var(--tg-theme-button-color, var(--primary));
   border: 0;
   border-radius: 14px;
   padding: 12px 14px;
-  color: #06111f;
+  color: var(--tg-theme-button-text-color, #06111f);
   font-weight: 800;
   cursor: pointer;
   font-size: 14px;
+  font-family: inherit;
 }
 
 .btn.secondary {
@@ -164,37 +169,16 @@ textarea {
   padding: 12px;
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(0,0,0,0.08);
-}
-
-.status.ok {
-  border-color: rgba(65, 217, 123, 0.5);
-}
-
-.status.err {
-  border-color: rgba(255, 90, 110, 0.6);
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  overflow: hidden;
-  border-radius: 12px;
-}
-
-th, td {
-  padding: 10px 8px;
-  border-bottom: 1px solid var(--border);
+  background: var(--input-bg);
   font-size: 13px;
 }
 
-th {
-  text-align: left;
-  color: var(--tg-theme-hint-color, var(--muted));
-  font-weight: 800;
-  font-size: 12px;
-}
+.status.ok { border-color: rgba(65, 217, 123, 0.5); color: var(--success); }
+.status.err { border-color: rgba(255, 90, 110, 0.6); color: var(--danger); }
 
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 8px; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { text-align: left; color: var(--tg-theme-hint-color, var(--muted)); font-weight: 800; font-size: 12px; }
 tr.category td {
   background: rgba(90, 167, 255, 0.08);
   color: var(--tg-theme-text-color, var(--text));
@@ -210,14 +194,51 @@ tr.category td {
   text-align: center;
 }
 
-.mapbox {
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--border);
+.mapbox { border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+.mapbox iframe { width: 100%; height: 180px; border: 0; }
+
+/* Слоты */
+.slots-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.mapbox iframe {
-  width: 100%;
-  height: 180px;
-  border: 0;
+.slot-day { margin-bottom: 4px; }
+.slot-day-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tg-theme-hint-color, var(--muted));
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.slot-times { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.slot-btn {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--tg-theme-text-color, var(--text));
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.slot-btn.selected {
+  border-color: var(--primary);
+  background: rgba(90, 167, 255, 0.12);
+  color: var(--primary);
+}
+
+.slot-btn:hover { border-color: var(--primary); }
+
+.slots-empty {
+  font-size: 13px;
+  color: var(--tg-theme-hint-color, var(--muted));
+  padding: 12px 0;
 }

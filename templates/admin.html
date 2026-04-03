@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>iBig — Админ панель</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0e0e0e;
+      --panel:   #1c1c1e;
+      --border:  #2c2c2e;
+      --text:    #f2f2f7;
+      --muted:   #8e8e93;
+      --primary: #0a84ff;
+      --danger:  #ff453a;
+      --success: #30d158;
+      --input-bg:#2c2c2e;
+      --radius:  10px;
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; }
+
+    header { background: var(--panel); border-bottom: 1px solid var(--border); padding: 16px 20px; display: flex; align-items: center; gap: 12px; }
+    header h1 { font-size: 20px; font-weight: 700; }
+    header span { font-size: 13px; color: var(--muted); margin-left: auto; }
+
+    .tabs { display: flex; gap: 2px; padding: 12px 20px 0; background: var(--panel); border-bottom: 1px solid var(--border); }
+    .tab-btn { background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 600; padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; transition: .2s; }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    .content { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    h2 { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+
+    /* Cards / Table */
+    .card { background: var(--panel); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: var(--border); text-align: left; padding: 10px 14px; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+    td { padding: 10px 14px; border-top: 1px solid var(--border); vertical-align: middle; }
+    tr:first-child td { border-top: none; }
+    tr:hover td { background: rgba(255,255,255,.03); }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+    .badge-cat { background: rgba(10,132,255,.18); color: var(--primary); }
+    .badge-free { background: rgba(48,209,88,.18); color: var(--success); }
+    .badge-booked { background: rgba(255,69,58,.18); color: var(--danger); }
+
+    /* Inputs */
+    input, select, textarea {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      background: var(--input-bg); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; outline: none;
+      transition: border-color .2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 5px; margin-top: 12px; }
+    label:first-child { margin-top: 0; }
+
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+    .btn:hover { opacity: .85; }
+    .btn:active { opacity: .7; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-ghost   { background: rgba(255,255,255,.08); color: var(--text); }
+    .btn-sm { padding: 5px 10px; font-size: 13px; }
+
+    /* Form row */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media(max-width:540px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .form-actions { margin-top: 16px; display: flex; gap: 8px; }
+
+    /* Alert */
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 14px; margin-bottom: 14px; display: none; }
+    .alert.ok  { background: rgba(48,209,88,.15);  color: var(--success); display: block; }
+    .alert.err { background: rgba(255,69,58,.15);  color: var(--danger);  display: block; }
+
+    /* Toolbar */
+    .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    .toolbar h2 { margin: 0; }
+    .toolbar-spacer { flex: 1; }
+
+    /* Slots filter */
+    .slots-filter { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+    .slots-filter select { width: auto; }
+
+    /* Empty */
+    .empty-row td { text-align: center; color: var(--muted); padding: 24px; }
+
+    /* Stats bar */
+    .stats { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .stat-card { flex: 1; min-width: 130px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+    .stat-card .val { font-size: 28px; font-weight: 700; }
+    .stat-card .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>🛠</div>
+  <h1>iBig — Админ панель</h1>
+  <span id="adminTokenHint"></span>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="prices">💰 Прайс-лист</button>
+  <button class="tab-btn" data-tab="slots">🕐 Слоты записи</button>
+  <button class="tab-btn" data-tab="repairs">📋 Заявки</button>
+</div>
+
+<div class="content">
+
+  <!-- ──────────────── PRICES ──────────────── -->
+  <div class="section active" id="section-prices">
+    <div class="toolbar">
+      <h2>Услуги и цены</h2>
+      <div class="toolbar-spacer"></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddPrice()">+ Добавить</button>
+    </div>
+
+    <div id="priceAlert" class="alert"></div>
+
+    <!-- Форма добавления/редактирования -->
+    <div class="card" id="priceFormCard" style="display:none;padding:16px;margin-bottom:20px;">
+      <h2 id="priceFormTitle" style="margin-bottom:14px;">Новая услуга</h2>
+      <div class="form-grid">
+        <div>
+          <label>Категория</label>
+          <input id="pfCategory" placeholder="Напр.: iPhone — экран"/>
+        </div>
+        <div>
+          <label>Название услуги</label>
+          <input id="pfService" placeholder="Напр.: Замена стекла"/>
+        </div>
+        <div>
+          <label>Цена</label>
+          <input id="pfPrice" placeholder="Напр.: от 1 500 ₽"/>
+        </div>
+        <div>
+          <label>Порядок сортировки</label>
+          <input id="pfSort" type="number" placeholder="0" value="0"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="savePrice()">Сохранить</button>
+        <button class="btn btn-ghost"   onclick="closePriceForm()">Отмена</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <table id="pricesTable">
+        <thead>
+          <tr>
+            <th>Категория</th>
+            <th>Услуга</th>
+            <th>Цена</th>
+            <th style="width:100px;">Действия</th>
+          </tr>
+        </thead>
+        <tbody id="pricesBody">
+          <tr class="empty-row"><td colspan="4">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ──────────────── SLOTS ──────────────── -->
+  <div class="section" id="section-slots">
+    <div class="toolbar">
+      <h2>Слоты записи</h2>
+      <div class="toolbar-spacer"></div>
+      <button class="btn btn-primary btn-sm" onclick="openAddSlot()">+ Добавить слот</button>
+      <button class="btn btn-ghost   btn-sm" onclick="genSlots()">⚡ Авто-генерация</button>
+    </div>
+
+    <div id="slotAlert" class="alert"></div>
+
+    <!-- Форма добавления слота -->
+    <div class="card" id="slotFormCard" style="display:none;padding:16px;margin-bottom:20px;">
+      <h2 style="margin-bottom:14px;">Новый слот</h2>
+      <div class="form-grid">
+        <div>
+          <label>Дата и время</label>
+          <input id="sfDatetime" type="datetime-local"/>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveSlot()">Добавить</button>
+        <button class="btn btn-ghost"   onclick="closeSlotForm()">Отмена</button>
+      </div>
+    </div>
+
+    <div class="stats" id="slotStats"></div>
+
+    <div class="slots-filter">
+      <label style="margin:0;">Показать:</label>
+      <select id="slotFilter" onchange="renderSlotsTable()">
+        <option value="all">Все</option>
+        <option value="free">Свободные</option>
+        <option value="booked">Занятые</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Дата и время</th>
+            <th>Статус</th>
+            <th>Заявка</th>
+            <th style="width:80px;">Удалить</th>
+          </tr>
+        </thead>
+        <tbody id="slotsBody">
+          <tr class="empty-row"><td colspan="4">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ──────────────── REPAIRS ──────────────── -->
+  <div class="section" id="section-repairs">
+    <div class="toolbar">
+      <h2>Заявки на ремонт</h2>
+      <div class="toolbar-spacer"></div>
+      <select id="repairStatusFilter" onchange="loadRepairs()" style="width:auto;">
+        <option value="">Все статусы</option>
+        <option value="new">Новые</option>
+        <option value="in_progress">В работе</option>
+        <option value="ready">Готовы</option>
+        <option value="done">Завершённые</option>
+      </select>
+    </div>
+
+    <div id="repairAlert" class="alert"></div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Номер</th>
+            <th>Клиент</th>
+            <th>Устройство</th>
+            <th>Время записи</th>
+            <th>Статус</th>
+            <th>Изменить статус</th>
+          </tr>
+        </thead>
+        <tbody id="repairsBody">
+          <tr class="empty-row"><td colspan="6">Загрузка…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<script>
+"use strict";
+
+/* ─── Token from URL ─── */
+const params      = new URLSearchParams(location.search);
+const ADMIN_TOKEN = params.get("token") || "";
+
+if (!ADMIN_TOKEN) {
+  document.body.innerHTML = '<div style="padding:40px;text-align:center;color:#ff453a;font-size:18px;">⛔ Нет токена. Откройте страницу с параметром <code>?token=ВАШ_ТОКЕН</code></div>';
+  throw new Error("no token");
+}
+
+const hint = document.getElementById("adminTokenHint");
+if (hint) hint.textContent = "token: " + ADMIN_TOKEN.slice(0, 4) + "****";
+
+/* ─── Tabs ─── */
+document.querySelectorAll(".tab-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("section-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "prices")  loadPrices();
+    if (btn.dataset.tab === "slots")   loadSlots();
+    if (btn.dataset.tab === "repairs") loadRepairs();
+  });
+});
+
+/* ─── API helpers ─── */
+async function api(path, opts = {}) {
+  // Все admin-эндпоинты живут по /api/admin/...
+  const fullPath = "/api/admin" + path;
+  const sep = fullPath.includes("?") ? "&" : "?";
+  const url = fullPath + sep + "token=" + encodeURIComponent(ADMIN_TOKEN);
+  const res = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
+  return res.json();
+}
+
+function showAlert(id, cls, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = "alert " + cls;
+  el.textContent = msg;
+  setTimeout(() => { el.className = "alert"; }, 4000);
+}
+
+function esc(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+const RU_DAYS   = ["вс","пн","вт","ср","чт","пт","сб"];
+const RU_MONTHS = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
+
+function fmtDt(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return `${d.getDate()} ${RU_MONTHS[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+}
+
+/* ════════════════════════ PRICES ════════════════════════ */
+let allPrices   = [];
+let editPriceId = null;
+
+async function loadPrices() {
+  const data = await api("/prices");
+  allPrices   = data.prices || [];
+  renderPrices();
+}
+
+function renderPrices() {
+  const tbody = document.getElementById("pricesBody");
+  if (!allPrices.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Нет записей</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allPrices.map((p) => `
+    <tr>
+      <td><span class="badge badge-cat">${esc(p.category)}</span></td>
+      <td>${esc(p.service_name)}</td>
+      <td style="white-space:nowrap;">${esc(p.price_text)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="editPrice(${p.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePrice(${p.id})">🗑</button>
+      </td>
+    </tr>`).join("");
+}
+
+function openAddPrice() {
+  editPriceId = null;
+  document.getElementById("priceFormTitle").textContent = "Новая услуга";
+  document.getElementById("pfCategory").value = "";
+  document.getElementById("pfService").value  = "";
+  document.getElementById("pfPrice").value    = "";
+  document.getElementById("pfSort").value     = "0";
+  document.getElementById("priceFormCard").style.display = "";
+}
+
+function editPrice(id) {
+  const p = allPrices.find((x) => x.id === id);
+  if (!p) return;
+  editPriceId = id;
+  document.getElementById("priceFormTitle").textContent = "Редактировать услугу";
+  document.getElementById("pfCategory").value = p.category;
+  document.getElementById("pfService").value  = p.service_name;
+  document.getElementById("pfPrice").value    = p.price_text;
+  document.getElementById("pfSort").value     = p.sort_order ?? 0;
+  document.getElementById("priceFormCard").style.display = "";
+  document.getElementById("priceFormCard").scrollIntoView({ behavior: "smooth" });
+}
+
+function closePriceForm() {
+  document.getElementById("priceFormCard").style.display = "none";
+  editPriceId = null;
+}
+
+async function savePrice() {
+  const body = {
+    category:     document.getElementById("pfCategory").value.trim(),
+    service_name: document.getElementById("pfService").value.trim(),
+    price_text:   document.getElementById("pfPrice").value.trim(),
+    sort_order:   parseInt(document.getElementById("pfSort").value, 10) || 0,
+  };
+  if (!body.category || !body.service_name || !body.price_text) {
+    showAlert("priceAlert", "err", "Заполните все поля.");
+    return;
+  }
+
+  let data;
+  if (editPriceId) {
+    data = await api(`/prices/${editPriceId}`, { method: "PUT", body: JSON.stringify(body) });
+  } else {
+    data = await api("/prices", { method: "POST", body: JSON.stringify(body) });
+  }
+
+  if (data.ok) {
+    showAlert("priceAlert", "ok", editPriceId ? "Услуга обновлена!" : "Услуга добавлена!");
+    closePriceForm();
+    loadPrices();
+  } else {
+    showAlert("priceAlert", "err", data.error || "Ошибка сохранения");
+  }
+}
+
+async function deletePrice(id) {
+  if (!confirm("Удалить эту услугу?")) return;
+  const data = await api(`/prices/${id}`, { method: "DELETE" });
+  if (data.ok) { showAlert("priceAlert", "ok", "Удалено!"); loadPrices(); }
+  else showAlert("priceAlert", "err", data.error || "Ошибка");
+}
+
+/* ════════════════════════ SLOTS ════════════════════════ */
+let allSlots = [];
+
+async function loadSlots() {
+  const data = await api("/slots");
+  allSlots = data.slots || [];
+  renderSlotsTable();
+  renderSlotStats();
+}
+
+function renderSlotStats() {
+  const free   = allSlots.filter((s) => !s.is_booked).length;
+  const booked = allSlots.filter((s) =>  s.is_booked).length;
+  const el = document.getElementById("slotStats");
+  el.innerHTML = `
+    <div class="stat-card"><div class="val">${allSlots.length}</div><div class="lbl">Всего слотов</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--success)">${free}</div><div class="lbl">Свободных</div></div>
+    <div class="stat-card"><div class="val" style="color:var(--danger)">${booked}</div><div class="lbl">Занятых</div></div>
+  `;
+}
+
+function renderSlotsTable() {
+  const filter = document.getElementById("slotFilter").value;
+  const rows   = allSlots.filter((s) => {
+    if (filter === "free")   return !s.is_booked;
+    if (filter === "booked") return  s.is_booked;
+    return true;
+  });
+  const tbody = document.getElementById("slotsBody");
+  if (!rows.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Нет слотов</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map((s) => `
+    <tr>
+      <td>${fmtDt(s.slot_datetime)}</td>
+      <td>${s.is_booked
+        ? '<span class="badge badge-booked">занят</span>'
+        : '<span class="badge badge-free">свободен</span>'}</td>
+      <td>${s.repair_id ? "Заявка #" + s.repair_id : "—"}</td>
+      <td>${!s.is_booked
+        ? `<button class="btn btn-danger btn-sm" onclick="deleteSlot(${s.id})">🗑</button>`
+        : "—"}</td>
+    </tr>`).join("");
+}
+
+function openAddSlot() {
+  // Устанавливаем ближайший рабочий час по умолчанию
+  const now = new Date();
+  now.setMinutes(0, 0, 0);
+  now.setHours(now.getHours() + 1);
+  // Формат для datetime-local: YYYY-MM-DDTHH:MM
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  document.getElementById("sfDatetime").value = local;
+  document.getElementById("slotFormCard").style.display = "";
+}
+
+function closeSlotForm() {
+  document.getElementById("slotFormCard").style.display = "none";
+}
+
+async function saveSlot() {
+  const dtVal = document.getElementById("sfDatetime").value;
+  if (!dtVal) { showAlert("slotAlert", "err", "Укажите дату и время."); return; }
+
+  // Отправляем как ISO
+  const iso = new Date(dtVal).toISOString();
+  const data = await api("/slots", { method: "POST", body: JSON.stringify({ slot_datetime: iso }) });
+  if (data.ok) {
+    showAlert("slotAlert", "ok", "Слот добавлен!");
+    closeSlotForm();
+    loadSlots();
+  } else {
+    showAlert("slotAlert", "err", data.error || "Ошибка добавления");
+  }
+}
+
+async function deleteSlot(id) {
+  if (!confirm("Удалить этот слот?")) return;
+  const data = await api(`/slots/${id}`, { method: "DELETE" });
+  if (data.ok) { showAlert("slotAlert", "ok", "Слот удалён!"); loadSlots(); }
+  else showAlert("slotAlert", "err", data.error || "Ошибка");
+}
+
+async function genSlots() {
+  if (!confirm("Авто-сгенерировать слоты на ближайшие 7 дней (пн–сб, 10:00–19:00, каждый час)? Уже существующие не будут дублироваться.")) return;
+  const data = await api("/slots/generate", { method: "POST" });
+  if (data.ok) {
+    showAlert("slotAlert", "ok", `Добавлено ${data.added || 0} новых слотов!`);
+    loadSlots();
+  } else {
+    showAlert("slotAlert", "err", data.error || "Ошибка генерации");
+  }
+}
+
+/* ════════════════════════ REPAIRS ════════════════════════ */
+const STATUS_LABELS = {
+  new:         "🆕 Новая",
+  in_progress: "🔧 В работе",
+  ready:       "✅ Готово",
+  done:        "🏁 Завершено",
+};
+const STATUS_NEXT = {
+  new:         "in_progress",
+  in_progress: "ready",
+  ready:       "done",
+  done:        null,
+};
+const STATUS_NEXT_LABEL = {
+  new:         "→ В работу",
+  in_progress: "→ Готово",
+  ready:       "→ Завершить",
+  done:        null,
+};
+
+async function loadRepairs() {
+  const filter = document.getElementById("repairStatusFilter").value;
+  const q      = filter ? "?status=" + filter + "&" : "?";
+  const data   = await api("/repairs" + (filter ? "?status=" + filter : ""));
+  const repairs = data.repairs || [];
+  const tbody   = document.getElementById("repairsBody");
+
+  if (!repairs.length) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Нет заявок</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = repairs.map((r) => {
+    const nextStatus = STATUS_NEXT[r.status];
+    const nextLabel  = STATUS_NEXT_LABEL[r.status];
+    const device     = esc(r.device_type) + (r.device_model ? " — " + esc(r.device_model) : "");
+    return `
+    <tr>
+      <td><b>${esc(r.order_number)}</b></td>
+      <td>${esc(r.customer_name)}<br><small style="color:var(--muted)">${esc(r.customer_phone)}</small></td>
+      <td>${device}</td>
+      <td style="white-space:nowrap;">${fmtDt(r.preferred_time)}</td>
+      <td>${STATUS_LABELS[r.status] || esc(r.status)}</td>
+      <td>${nextStatus
+        ? `<button class="btn btn-primary btn-sm" onclick="updateRepairStatus(${r.id},'${nextStatus}')">${nextLabel}</button>`
+        : '<span style="color:var(--muted)">—</span>'}</td>
+    </tr>`;
+  }).join("");
+}
+
+async function updateRepairStatus(id, newStatus) {
+  const data = await api(`/repairs/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status: newStatus }),
+  });
+  if (data.ok) { showAlert("repairAlert", "ok", "Статус обновлён!"); loadRepairs(); }
+  else showAlert("repairAlert", "err", data.error || "Ошибка");
+}
+
+/* ─── Initial load ─── */
+loadPrices();
+</script>
+</body>
+</html>

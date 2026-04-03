@@ -44,13 +44,20 @@
 
             <label>
               Тип устройства
-              <select name="deviceType" required>
-                <option value="" selected disabled>Выберите устройство</option>
+              <select name="deviceType" id="deviceTypeSelect" required>
+                <option value="" disabled selected>Выберите устройство</option>
                 <option>Смартфон</option>
                 <option>Планшет</option>
                 <option>Ноутбук</option>
                 <option>ПК</option>
                 <option>Другая техника</option>
+              </select>
+            </label>
+
+            <label id="deviceModelLabel" style="display:none;">
+              Модель устройства
+              <select name="deviceModel" id="deviceModelSelect" required>
+                <option value="" disabled selected>Выберите модель</option>
               </select>
             </label>
 
@@ -60,14 +67,15 @@
             </label>
 
             <label>
-              Удобное время
-              <input name="preferredTime" type="datetime-local" required />
+              Выберите удобное время
+              <div id="slotsContainer"><div class="slots-empty">Загрузка слотов...</div></div>
+              <input type="hidden" name="selectedSlot" id="selectedSlotInput" />
+              <input type="hidden" name="selectedSlotId" id="selectedSlotIdInput" />
             </label>
 
             <div class="actions">
               <button class="btn" type="submit">Отправить заявку</button>
             </div>
-
             <div class="status" id="repairStatusBox" style="display:none;"></div>
           </form>
         </div>
@@ -78,36 +86,16 @@
         <div class="card">
           <h2>Прайс-лист</h2>
           <div class="muted">Цены ориентировочные. Точную стоимость скажет администратор после диагностики.</div>
-
           <div style="margin-top:12px; overflow:auto;">
-            <table>
+            <table id="priceTable">
               <thead>
                 <tr>
                   <th style="width:70%;">Услуга</th>
                   <th>Цена</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="category"><td colspan="2">Смартфоны</td></tr>
-                <tr><td>Замена дисплея</td><td>от 6 900 ₽</td></tr>
-                <tr><td>Замена аккумулятора</td><td>от 2 900 ₽</td></tr>
-                <tr><td>Ремонт разъёма зарядки</td><td>от 2 500 ₽</td></tr>
-                <tr><td>Неисправность "не включается"</td><td>от 2 300 ₽</td></tr>
-
-                <tr class="category"><td colspan="2">Ноутбуки</td></tr>
-                <tr><td>Замена SSD / установка</td><td>от 1 900 ₽</td></tr>
-                <tr><td>Чистка от пыли и термопаста</td><td>от 2 500 ₽</td></tr>
-                <tr><td>Ремонт питания / разъёма</td><td>от 2 900 ₽</td></tr>
-                <tr><td>Замена клавиатуры</td><td>от 4 900 ₽</td></tr>
-
-                <tr class="category"><td colspan="2">Планшеты</td></tr>
-                <tr><td>Замена дисплея</td><td>от 5 500 ₽</td></tr>
-                <tr><td>Замена аккумулятора</td><td>от 2 700 ₽</td></tr>
-                <tr><td>Ремонт кнопок / шлейфов</td><td>от 2 400 ₽</td></tr>
-
-                <tr class="category"><td colspan="2">Прочее</td></tr>
-                <tr><td>Диагностика (если ремонт не выполняется)</td><td>1 000 ₽</td></tr>
-                <tr><td>Срочная диагностика</td><td>1 800 ₽</td></tr>
+              <tbody id="priceTableBody">
+                <tr><td colspan="2" class="muted" style="text-align:center;padding:16px;">Загрузка...</td></tr>
               </tbody>
             </table>
           </div>
@@ -119,7 +107,6 @@
         <div class="card">
           <h2>Задать вопрос</h2>
           <div class="muted">Напишите вопрос — администратор ответит вам в Telegram.</div>
-
           <form id="questionForm">
             <label>
               Ваш вопрос
@@ -137,12 +124,11 @@
       <section class="tab" id="tab-status" style="display:none;">
         <div class="card">
           <h2>Статус ремонта</h2>
-          <div class="muted">Введите номер заявки, полученный после записи.</div>
-
+          <div class="muted">Введите номер заявки, полученный после записи (например: iBig-1234).</div>
           <form id="statusForm">
             <label>
               Номер заявки
-              <input name="orderNumber" type="text" placeholder="Например: iBig-20260323-A1B2C3" required maxlength="100" />
+              <input name="orderNumber" type="text" placeholder="iBig-1234" required maxlength="100" />
             </label>
             <div class="actions">
               <button class="btn" type="submit">Проверить</button>
@@ -156,35 +142,28 @@
       <section class="tab" id="tab-contacts" style="display:none;">
         <div class="card">
           <h2>Контакты</h2>
-          <div class="muted" style="margin-bottom:10px;">
-            Обновите данные (адрес/телефон/график) под ваш сервисный центр.
-          </div>
-
           <div class="row2">
             <div>
               <div class="muted" style="margin-bottom:6px;">Адрес</div>
-              <div style="font-weight:800;">ул. Примерная, 1</div>
-              <div class="muted" style="margin-top:8px;">Телефон</div>
-              <div style="font-weight:800;">+7 (999) 123-45-67</div>
-              <div class="muted" style="margin-top:8px;">Режим работы</div>
-              <div style="font-weight:800;">Ежедневно 10:00–19:00</div>
+              <div style="font-weight:800;">г. Улан-Удэ, ул. Балтахинова 15</div>
+              <div style="font-size:13px;margin-top:2px;">ТЦ Galaxy, 3 этаж, бутик 326</div>
+              <div class="muted" style="margin-top:10px;">Телефон</div>
+              <div style="font-weight:800;">+7-996-935-73-83</div>
+              <div class="muted" style="margin-top:10px;">Режим работы</div>
+              <div style="font-weight:800;">Ежедневно с 10:00 до 20:00</div>
             </div>
             <div>
               <div class="muted" style="margin-bottom:6px;">Карта</div>
               <div class="mapbox">
-                <!-- Заглушка: вставьте вашу локацию/координаты -->
                 <iframe
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=37.6173%2C55.7558%2C37.6507%2C55.7700&layer=mapnik&marker=55.7630%2C37.6340"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=107.5800%2C51.8100%2C107.6400%2C51.8450&layer=mapnik&marker=51.8272%2C107.6062"
                   loading="lazy"
                   referrerpolicy="no-referrer-when-downgrade"
                 ></iframe>
               </div>
             </div>
           </div>
-
-          <div class="footer">
-            iBig • Мини Апп • Telegram Web App
-          </div>
+          <div class="footer">iBig • Сервисный центр • Telegram Mini App</div>
         </div>
       </section>
     </div>
