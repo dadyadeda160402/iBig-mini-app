@@ -18,7 +18,7 @@ from telegram.ext import (
     filters,
 )
 
-from config import ADMIN_CHAT_ID_INT, BOT_TOKEN, CONFIG_OK
+from config import ADMIN_CHAT_ID_INT, QUESTIONS_CHAT_ID_INT, BOT_TOKEN, CONFIG_OK
 from database.models import answer_question, sanitize_text, update_repair_status_by_order as update_repair_status
 
 # Для ответа администратора на вопросы в Telegram:
@@ -121,7 +121,7 @@ async def notify_admin_new_question(question_id: int, question_text: str, userna
         f"Клиент: {user_line}\n\n"
         f"{question_text}"
     )
-    await application.bot.send_message(chat_id=ADMIN_CHAT_ID_INT, text=text, reply_markup=keyboard)
+    await application.bot.send_message(chat_id=QUESTIONS_CHAT_ID_INT, text=text, reply_markup=keyboard)
 
 
 async def _handle_admin_reply_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -130,7 +130,9 @@ async def _handle_admin_reply_callback(update: Update, context: ContextTypes.DEF
     if not query:
         return
 
-    if update.effective_chat and update.effective_chat.id != ADMIN_CHAT_ID_INT:
+    chat_id = update.effective_chat.id if update.effective_chat else None
+    allowed_chats = {ADMIN_CHAT_ID_INT, QUESTIONS_CHAT_ID_INT}
+    if chat_id not in allowed_chats:
         await query.answer("Недостаточно прав.", show_alert=True)
         return
 
@@ -145,7 +147,7 @@ async def _handle_admin_reply_callback(update: Update, context: ContextTypes.DEF
         await query.answer("Некорректный id.", show_alert=True)
         return
 
-    pending_admin_replies[ADMIN_CHAT_ID_INT] = question_id
+    pending_admin_replies[chat_id] = question_id
     await query.answer("Ок. Введите ответ сообщением.")
     await query.message.reply_text(
         "Введите ответ клиенту одним сообщением. После отправки я пересылаю ответ клиенту."
@@ -156,7 +158,9 @@ async def _handle_admin_text(update: Update, context: ContextTypes.DEFAULT_TYPE)
     """Обработчик текстовых сообщений от администратора (ответы на вопросы)."""
     if not update.message or not update.effective_chat:
         return
-    if update.effective_chat.id != ADMIN_CHAT_ID_INT:
+    chat_id = update.effective_chat.id
+    allowed_chats = {ADMIN_CHAT_ID_INT, QUESTIONS_CHAT_ID_INT}
+    if chat_id not in allowed_chats:
         return
 
     text = (update.message.text or "").strip()
@@ -164,28 +168,27 @@ async def _handle_admin_text(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
 
     if text.lower() in {"cancel", "/cancel", "отмена"}:
-        pending_admin_replies.pop(ADMIN_CHAT_ID_INT, None)
+        pending_admin_replies.pop(chat_id, None)
         await update.message.reply_text("Ответ отменён.")
         return
 
-    if ADMIN_CHAT_ID_INT not in pending_admin_replies:
-        await update.message.reply_text("Просто так вы прислали текст. Для ответа нажмите кнопку 'Ответить' в уведомлении.")
-        return
+    if chat_id not in pending_admin_replies:
+        return  # В чате с вопросами молчим, если нет активного ответа
 
-    question_id = pending_admin_replies.get(ADMIN_CHAT_ID_INT)
+    question_id = pending_admin_replies.get(chat_id)
     if not question_id:
-        pending_admin_replies.pop(ADMIN_CHAT_ID_INT, None)
+        pending_admin_replies.pop(chat_id, None)
         await update.message.reply_text("Не нашёл активный вопрос. Попробуйте снова.")
         return
 
     row = answer_question(question_id, text)
     if not row:
-        pending_admin_replies.pop(ADMIN_CHAT_ID_INT, None)
+        pending_admin_replies.pop(chat_id, None)
         await update.message.reply_text("Вопрос уже обработан или не найден.")
         return
 
     user_id = row["telegram_user_id"]
-    pending_admin_replies.pop(ADMIN_CHAT_ID_INT, None)
+    pending_admin_replies.pop(chat_id, None)
 
     try:
         await application.bot.send_message(chat_id=user_id, text=f"Здравствуйте! Ответ на ваш вопрос:\n\n{text}")

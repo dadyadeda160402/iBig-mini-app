@@ -66,12 +66,15 @@
               <textarea name="description" placeholder="Что именно случилось? (например: не включается, трещина, не заряжается)" required maxlength="2000"></textarea>
             </label>
 
-            <label>
-              Выберите удобное время
-              <div id="slotsContainer"><div class="slots-empty">Загрузка слотов...</div></div>
+            <div class="slots-wrap">
+              <div class="slots-header">
+                <span class="label-text">Удобное время</span>
+                <button type="button" id="slotsToggleBtn" class="slot-toggle-btn">▼ Выбрать время</button>
+              </div>
+              <div id="slotsContainer" style="display:none;"><div class="slots-empty">Загрузка слотов...</div></div>
               <input type="hidden" name="selectedSlot" id="selectedSlotInput" />
               <input type="hidden" name="selectedSlotId" id="selectedSlotIdInput" />
-            </label>
+            </div>
 
             <div class="actions">
               <button class="btn" type="submit">Отправить заявку</button>
@@ -156,7 +159,7 @@
               <div class="muted" style="margin-bottom:6px;">Карта</div>
               <div class="mapbox">
                 <iframe
-                  src="https://www.openstreetmap.org/export/embed.html?bbox=107.5800%2C51.8100%2C107.6400%2C51.8450&layer=mapnik&marker=51.8272%2C107.6062"
+                  src="https://www.openstreetmap.org/export/embed.html?bbox=107.5850%2C51.8220%2C107.6150%2C51.8400&layer=mapnik&marker=51.8303%2C107.5993"
                   loading="lazy"
                   referrerpolicy="no-referrer-when-downgrade"
                 ></iframe>

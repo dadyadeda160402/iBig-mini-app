@@ -52,34 +52,48 @@ document.querySelectorAll(".nav button").forEach((btn) => {
 /* ─────────────────────── Модели устройств ─────────────────────────────── */
 const DEVICE_MODELS = {
   "Смартфон": [
-    "iPhone 16 / 16 Plus / 16 Pro / 16 Pro Max",
-    "iPhone 15 / 15 Plus / 15 Pro / 15 Pro Max",
-    "iPhone 14 / 14 Plus / 14 Pro / 14 Pro Max",
-    "iPhone 13 / 13 mini / 13 Pro / 13 Pro Max",
-    "iPhone 12 / 12 mini / 12 Pro / 12 Pro Max",
-    "iPhone 11 / 11 Pro / 11 Pro Max",
-    "iPhone XS / XS Max / XR / X",
-    "iPhone 8 / 8 Plus / 7 / 7 Plus / SE",
-    "Samsung Galaxy S25 / S24 / S23 серия",
-    "Samsung Galaxy A55 / A54 / A53 / A35 / A34",
-    "Xiaomi / Redmi / POCO",
+    "iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone 16 Plus", "iPhone 16",
+    "iPhone 15 Pro Max", "iPhone 15 Pro", "iPhone 15 Plus", "iPhone 15",
+    "iPhone 14 Pro Max", "iPhone 14 Pro", "iPhone 14 Plus", "iPhone 14",
+    "iPhone 13 Pro Max", "iPhone 13 Pro", "iPhone 13", "iPhone 13 mini",
+    "iPhone 12 Pro Max", "iPhone 12 Pro", "iPhone 12", "iPhone 12 mini",
+    "iPhone 11 Pro Max", "iPhone 11 Pro", "iPhone 11",
+    "iPhone XS Max", "iPhone XS", "iPhone XR", "iPhone X",
+    "iPhone 8 Plus", "iPhone 8", "iPhone 7 Plus", "iPhone 7",
+    "iPhone SE (3-го поколения)", "iPhone SE (2-го поколения)",
+    "Samsung Galaxy S25 Ultra", "Samsung Galaxy S25+", "Samsung Galaxy S25",
+    "Samsung Galaxy S24 Ultra", "Samsung Galaxy S24+", "Samsung Galaxy S24",
+    "Samsung Galaxy S23 Ultra", "Samsung Galaxy S23+", "Samsung Galaxy S23",
+    "Samsung Galaxy A55", "Samsung Galaxy A54", "Samsung Galaxy A35", "Samsung Galaxy A34",
+    "Samsung Galaxy A25", "Samsung Galaxy A15",
+    "Xiaomi 14 Pro", "Xiaomi 14", "Xiaomi 13 Pro", "Xiaomi 13",
+    "Redmi Note 13 Pro+", "Redmi Note 13 Pro", "Redmi Note 13",
+    "Redmi Note 12 Pro+", "Redmi Note 12 Pro", "Redmi Note 12",
+    "POCO X6 Pro", "POCO X6", "POCO X5 Pro", "POCO X5",
     "Другая модель",
   ],
   "Планшет": [
-    "iPad Pro 11\" / 12.9\"",
-    "iPad Air 5 / 4 / 3",
-    "iPad mini 6 / 5",
-    "iPad 10 / 9 / 8 поколение",
-    "Samsung Galaxy Tab S9 / S8 / S7",
-    "Samsung Galaxy Tab A9 / A8",
+    "iPad Pro 12.9\" (M2)", "iPad Pro 12.9\" (M1)", "iPad Pro 11\" (M2)", "iPad Pro 11\" (M1)",
+    "iPad Air 5", "iPad Air 4", "iPad Air 3",
+    "iPad mini 6", "iPad mini 5",
+    "iPad 10-го поколения", "iPad 9-го поколения", "iPad 8-го поколения",
+    "Samsung Galaxy Tab S9 Ultra", "Samsung Galaxy Tab S9+", "Samsung Galaxy Tab S9",
+    "Samsung Galaxy Tab S8 Ultra", "Samsung Galaxy Tab S8+", "Samsung Galaxy Tab S8",
+    "Samsung Galaxy Tab A9+", "Samsung Galaxy Tab A9", "Samsung Galaxy Tab A8",
     "Другая модель",
   ],
   "Ноутбук": [
-    "MacBook Air (M1 / M2 / M3)",
-    "MacBook Pro 13\" / 14\" / 16\"",
-    "Asus VivoBook / ZenBook",
-    "Lenovo IdeaPad / ThinkPad",
-    "HP / Dell / Acer",
+    "MacBook Air 15\" (M3)", "MacBook Air 13\" (M3)",
+    "MacBook Air 15\" (M2)", "MacBook Air 13\" (M2)",
+    "MacBook Air (M1)",
+    "MacBook Pro 16\" (M3 Pro/Max)", "MacBook Pro 14\" (M3 Pro/Max)",
+    "MacBook Pro 16\" (M2 Pro/Max)", "MacBook Pro 14\" (M2 Pro/Max)",
+    "MacBook Pro 13\" (M2)", "MacBook Pro 13\" (M1)",
+    "Asus VivoBook 15/16", "Asus ZenBook 14/15",
+    "Lenovo IdeaPad 3/5", "Lenovo ThinkPad",
+    "HP Laptop / Pavilion / Spectre",
+    "Dell Inspiron / XPS",
+    "Acer Aspire / Swift",
     "Другая модель",
   ],
   "ПК": [
@@ -88,9 +102,11 @@ const DEVICE_MODELS = {
     "Другая модель",
   ],
   "Другая техника": [
-    "Умные часы (Apple Watch / Samsung и др.)",
-    "Наушники / AirPods",
-    "Игровая консоль",
+    "Apple Watch Ultra 2", "Apple Watch Series 9", "Apple Watch SE",
+    "Samsung Galaxy Watch 6", "Samsung Galaxy Watch 5",
+    "AirPods Pro 2", "AirPods 3", "AirPods 2",
+    "Samsung Galaxy Buds",
+    "PlayStation 5", "Xbox Series X/S", "Nintendo Switch",
     "Другое",
   ],
 };
@@ -118,9 +134,20 @@ if (deviceTypeSelect && deviceModelLabel && deviceModelSelect) {
 }
 
 /* ─────────────────────── Слоты времени ────────────────────────────────── */
-const slotsContainer    = document.getElementById("slotsContainer");
-const selectedSlotInput = document.getElementById("selectedSlotInput");
+const slotsContainer      = document.getElementById("slotsContainer");
+const slotsToggleBtn      = document.getElementById("slotsToggleBtn");
+const slotsSelectedLabel  = document.getElementById("slotsSelectedLabel");
+const selectedSlotInput   = document.getElementById("selectedSlotInput");
 const selectedSlotIdInput = document.getElementById("selectedSlotIdInput");
+let slotsExpanded = false;
+
+if (slotsToggleBtn) {
+  slotsToggleBtn.addEventListener("click", () => {
+    slotsExpanded = !slotsExpanded;
+    slotsContainer.style.display = slotsExpanded ? "" : "none";
+    slotsToggleBtn.textContent = slotsExpanded ? "▲ Скрыть слоты" : "▼ Выбрать время";
+  });
+}
 
 const RU_DAYS   = ["вс","пн","вт","ср","чт","пт","сб"];
 const RU_MONTHS = ["янв","фев","мар","апр","май","июн","июл","авг","сен","окт","ноя","дек"];
@@ -176,6 +203,16 @@ function renderSlots(slots) {
         btn.classList.add("selected");
         if (selectedSlotInput)   selectedSlotInput.value   = s.slot_datetime;
         if (selectedSlotIdInput) selectedSlotIdInput.value = s.id;
+        // Обновляем подпись кнопки и сворачиваем сетку
+        const label = fmtDate(s.slot_datetime) + ", " + fmtTime(s.slot_datetime);
+        if (slotsToggleBtn) {
+          slotsToggleBtn.textContent = "✅ " + label + " (изменить)";
+          slotsToggleBtn.classList.add("slot-chosen");
+        }
+        if (slotsSelectedLabel) slotsSelectedLabel.textContent = label;
+        // Схлопываем после выбора
+        slotsExpanded = false;
+        slotsContainer.style.display = "none";
       });
 
       times.appendChild(btn);
@@ -281,7 +318,15 @@ if (repairForm) {
         if (deviceModelLabel) deviceModelLabel.style.display = "none";
         if (selectedSlotInput)   selectedSlotInput.value   = "";
         if (selectedSlotIdInput) selectedSlotIdInput.value = "";
-        await loadSlots(); // обновляем слоты (занятый уйдёт)
+        if (slotsToggleBtn) {
+          slotsToggleBtn.textContent = "▼ Выбрать время";
+          slotsToggleBtn.classList.remove("slot-chosen");
+        }
+        if (slotsSelectedLabel) slotsSelectedLabel.textContent = "";
+        slotsExpanded = false;
+        if (slotsContainer) slotsContainer.style.display = "none";
+        if (btn) btn.disabled = false;
+        await loadSlots();
       } else {
         showStatus(repairStatusBox, "err", "Ошибка: " + (data.error || "Неизвестная ошибка"));
         if (btn) btn.disabled = false;
@@ -317,6 +362,7 @@ if (questionForm) {
       if (data.ok) {
         showStatus(questionStatusBox, "ok", "✅ Вопрос отправлен! Ответим вам в Telegram.");
         questionForm.reset();
+        if (btn) btn.disabled = false;
       } else {
         showStatus(questionStatusBox, "err", "Ошибка: " + (data.error || "Неизвестная ошибка"));
         if (btn) btn.disabled = false;
